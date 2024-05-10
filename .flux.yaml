@@ -1,0 +1,6 @@
+version: 1
+commandUpdated:
+  generators:
+  - command: "kustomize build ."
+  commandApply:
+    command: "kubectl apply -f -"
