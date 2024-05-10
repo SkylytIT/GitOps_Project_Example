@@ -1,0 +1,49 @@
+name: Deploy to Kubernetes
+
+on:
+  push:
+    branches:
+      - main  # Change this to your main branch name
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Build and push Docker image
+      run: |
+        docker buildx build --platform linux/amd64,linux/arm64 -t your-docker-username/my-app:latest .
+        docker push skylytit/gitops:latest
+
+    - name: Install kubectl
+      uses: azure/setup-kubectl@v1
+      with:
+        version: 'latest'
+
+    - name: Configure kubectl
+      run: |
+        echo $KUBE_CONFIG_DATA | base64 -d > kubeconfig
+        mkdir -p ~/.kube
+        mv kubeconfig ~/.kube/config
+
+    - name: Install Flux CLI
+      run: |
+        curl -s https://toolkit.fluxcd.io/install.sh | sudo bash
+
+    - name: Sync Flux
+      run: flux reconcile kustomization flux-system --with-source
+
+    - name: Wait for Flux sync
+      run: flux reconcile kustomization flux-system --with-source --interval=5s --poll-timeout=5m
