@@ -1,4 +1,4 @@
-name: Deploy to Kubernetes
+name: Build and Push Docker Image
 
 on:
   push:
@@ -6,45 +6,29 @@ on:
       - main  # Change this to your main branch name
 
 jobs:
-  deploy:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
+    # Step 1: Set up Docker Buildx
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
 
+    # Step 2: Log in to Docker Hub
     - name: Log in to Docker Hub
       run: echo "${{ secrets.DOCKER_ACCESS_TOKEN }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
+    # Step 3: Build Docker image
     - name: Build Docker image
-      run: docker buildx build --platform linux/amd64,linux/arm64 -t skylytit/gitops:latest ./dockerfiles
-    
+      run: docker buildx build --platform linux/amd64,linux/arm64 -t gitops:latest .
+
+    # Step 4: Tag Docker image
     - name: Tag Docker image
-      run: docker tag skylytit/gitops:latest skylytit/gitops:latest
+      run: docker tag gitops:latest skylyt/gitops:latest
 
+    # Step 5: Push Docker image to Docker Hub
     - name: Push Docker image to Docker Hub
-      run: docker push skylytit/gitops:latest
-
-    - name: Install kubectl
-      uses: azure/setup-kubectl@v1
-      with:
-        version: 'latest'
-
-    - name: Configure kubectl
-      run: |
-        echo $KUBE_CONFIG_DATA | base64 -d > kubeconfig
-        mkdir -p ~/.kube
-        mv kubeconfig ~/.kube/config
-
-    - name: Install Flux CLI
-      run: |
-        curl -s https://toolkit.fluxcd.io/install.sh | sudo bash
-
-    - name: Sync Flux
-      run: flux reconcile kustomization flux-system --with-source
-
-    - name: Wait for Flux sync
-      run: flux reconcile kustomization flux-system --with-source --interval=5s --poll-timeout=5m
+      run: docker push skylyt/gitops:latest
