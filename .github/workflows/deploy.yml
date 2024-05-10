@@ -20,8 +20,7 @@ jobs:
       run: echo "${{ secrets.DOCKER_ACCESS_TOKEN }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
     - name: Build Docker image
-      run: |
-        docker buildx build --platform linux/amd64,linux/arm64 -t ***\gitops:latest ./dockerfile
+      run: docker buildx build --platform linux/amd64,linux/arm64 -t skylytit/gitops:latest ./dockerfiles
     
     - name: Tag Docker image
       run: docker tag skylytit/gitops:latest skylytit/gitops:latest
