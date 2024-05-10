@@ -21,7 +21,7 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker buildx build --platform linux/amd64,linux/arm64 -t skylytit/gitops:latest .
+        docker buildx build --platform linux/amd64,linux/arm64 -t ***\gitops:latest ./dockerfile
     
     - name: Tag Docker image
       run: docker tag skylytit/gitops:latest skylytit/gitops:latest
